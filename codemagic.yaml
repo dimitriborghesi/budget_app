@@ -15,7 +15,6 @@ workflows:
       - build/ios/iphoneos/*.app
 
     publishing:
-      app_store_connect:
-        apple_id: "dimitri.borghesi@outlook.fr"
-        password: "etwa-zthb-ipas-xthy"
-        submit_to_testflight: true
+  app_store_connect:
+    auth: integration
+    submit_to_testflight: true
