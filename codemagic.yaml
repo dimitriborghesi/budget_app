@@ -18,7 +18,7 @@ workflows:
       app_store_connect:
         api_key:
           key_id: 4SZAB6635B
-          issuer_id: Tafeb26af-25c9-4075-bcfa-d664c3c60cf0
+          issuer_id: afeb26af-25c9-4075-bcfa-d664c3c60cf0
           private_key: |
             -----BEGIN PRIVATE KEY-----
             MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgq03+qq4thzb8FjZ/
