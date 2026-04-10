@@ -5,13 +5,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'features/transactions/providers/transaction_provider.dart';
 import 'features/accounts/providers/account_provider.dart';
 import 'features/recurring/providers/recurring_provider.dart';
-
+import 'firebase_options.dart';
 import 'shared/screens/login_screen.dart';
 import 'shared/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+  options: DefaultFirebaseOptions.currentPlatform,
+);
 
   runApp(const MyApp());
 }
