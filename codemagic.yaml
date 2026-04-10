@@ -21,9 +21,9 @@ workflows:
           issuer_id: Tafeb26af-25c9-4075-bcfa-d664c3c60cf0
           private_key: |
             -----BEGIN PRIVATE KEY-----
-MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgq03+qq4thzb8FjZ/
-KVKFmT5qKMte2ToRFpH38njfPdigCgYIKoZIzj0DAQehRANCAAR74uNY+eNFh7Gs
-vUD3PBzfmKkGzvIShW7LMoz563NuBxYFEFIn4zLRmeOM9qnvXeOqKloeA1XCt/uo
-WsGjhdBA
------END PRIVATE KEY-----
-submit_to_testflight: true
+            MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgq03+qq4thzb8FjZ/
+            KVKFmT5qKMte2ToRFpH38njfPdigCgYIKoZIzj0DAQehRANCAAR74uNY+eNFh7Gs
+            vUD3PBzfmKkGzvIShW7LMoz563NuBxYFEFIn4zLRmeOM9qnvXeOqKloeA1XCt/uo
+            WsGjhdBA
+            -----END PRIVATE KEY-----
+        submit_to_testflight: true
