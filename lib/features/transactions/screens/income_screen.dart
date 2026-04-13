@@ -28,7 +28,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
         provider.transactions.where((t) => t.isIncome).toList();
 
     final total =
-        incomes.fold(0.0, (sum, t) => sum + t.amount);
+incomes.fold<double>(0.0, (sum, t) => sum + (t.amount as double));
 
     return Listener(
       behavior: HitTestBehavior.translucent,

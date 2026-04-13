@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import '../../../core/services/bank_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -150,4 +150,88 @@ class TransactionProvider with ChangeNotifier {
     _sub?.cancel();
     super.dispose();
   }
+    // 🔥 MATCHING
+  bool _isMatch(TransactionModel local, BankTransaction bank) {
+    final amountMatch =
+        (local.amount - bank.amount.abs()).abs() < 1.0;
+
+    final dateMatch =
+        local.date.difference(bank.date).inDays.abs() <= 2;
+
+    final titleMatch = bank.title
+        .toLowerCase()
+        .contains(local.title.toLowerCase());
+
+    return amountMatch && dateMatch && titleMatch;
+  }
+
+  // 🔥 SYNC BANQUE
+  Future<void> syncBank() async {
+  try {
+    final bankService = BankService();
+    final bankTransactions = await bankService.fetchTransactions();
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    for (var bank in bankTransactions) {
+      // 🔥 CHECK SI DEJA EXISTE
+      final existing = await _db
+          .collection('transactions')
+          .where('userId', isEqualTo: user.uid)
+          .where('bankId', isEqualTo: bank.id)
+          .get();
+
+      if (existing.docs.isNotEmpty) {
+        continue; // ⛔ skip doublon
+      }
+
+      bool matched = false;
+
+      for (var local in _transactions) {
+        if (local.bankId != null) continue;
+
+        if (_isMatch(local, bank)) {
+          await _db
+              .collection('transactions')
+              .doc(local.id)
+              .update({
+            "isChecked": true,
+            "bankId": bank.id,
+            "isSynced": true,
+          });
+
+          matched = true;
+          break;
+        }
+      }
+
+      if (!matched) {
+        await _db.collection('transactions').add({
+          "title": bank.title,
+          "amount": bank.amount.abs(),
+          "account": "Principal",
+          "category": _autoCategory(bank.title),
+          "isIncome": bank.amount > 0,
+          "date": bank.date,
+          "userId": user.uid,
+          "isChecked": true,
+          "bankId": bank.id,
+          "isSynced": true,
+        });
+      }
+    }
+
+    await NotificationService.simple(
+      title: "Synchronisation",
+      body: "Transactions mises à jour 💳",
+    );
+
+    debugPrint("✅ Sync sans doublon");
+  } catch (e) {
+    debugPrint("❌ Erreur sync banque: $e");
+  }
+}
+
+  _autoCategory(String title) {}
 }

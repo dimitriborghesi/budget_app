@@ -9,7 +9,11 @@ class TransactionModel {
   String account;
   DateTime date;
   String userId;
-  bool isChecked; // ✅ FIX
+  bool isChecked;
+
+  // 🔥 NEW
+  String? bankId;
+  bool isSynced;
 
   TransactionModel({
     required this.id,
@@ -20,7 +24,9 @@ class TransactionModel {
     required this.account,
     required this.date,
     required this.userId,
-    this.isChecked = false, // ✅ FIX
+    this.isChecked = false,
+    this.bankId,
+    this.isSynced = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -32,7 +38,11 @@ class TransactionModel {
       'account': account,
       'date': Timestamp.fromDate(date),
       'userId': userId,
-      'isChecked': isChecked, // ✅ NEW
+      'isChecked': isChecked,
+
+      // 🔥 NEW
+      'bankId': bankId,
+      'isSynced': isSynced,
     };
   }
 
@@ -46,7 +56,11 @@ class TransactionModel {
       account: map['account'] ?? '',
       date: (map['date'] as Timestamp).toDate(),
       userId: map['userId'] ?? '',
-      isChecked: map['isChecked'] ?? false, // ✅ FIX
+      isChecked: map['isChecked'] ?? false,
+
+      // 🔥 NEW
+      bankId: map['bankId'],
+      isSynced: map['isSynced'] ?? false,
     );
   }
 }

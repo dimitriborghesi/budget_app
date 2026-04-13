@@ -62,6 +62,7 @@ class _MainScreenState extends State<MainScreen> {
 
       /// 🔥 AUTO EXECUTION
       await recurringProvider.run();
+      await transactionProvider.syncBank();
     } catch (e) {
       debugPrint("Erreur INIT APP: $e");
     }

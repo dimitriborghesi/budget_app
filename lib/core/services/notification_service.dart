@@ -72,4 +72,6 @@ class NotificationService {
       body: "$title $sign${amount.toStringAsFixed(2)}€",
     );
   }
+
+  static Future<void> simple({required String title, required String body}) async {}
 }

@@ -35,7 +35,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         provider.transactions.where((t) => !t.isIncome).toList();
 
     final total =
-        expenses.fold(0.0, (sum, t) => sum + t.amount);
+expenses.fold<double>(0.0, (sum, t) => sum + (t.amount as double));
         
 final Map<String, double> categoryTotals = {};
 
