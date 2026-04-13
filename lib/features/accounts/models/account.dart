@@ -23,22 +23,20 @@ class Account {
       name: map['name'] ?? '',
       balance: (map['balance'] ?? 0).toDouble(),
       userId: map['userId'] ?? '',
-      icon: _getIcon(map['icon']),
+      icon: _iconFromCode(map['icon']),
       color: map['color'] ?? 0xFF799C0A,
     );
   }
 }
-IconData _getIcon(dynamic iconCode) {
-  switch (iconCode) {
-    case 0xe88a: // home
-      return Icons.home;
-    case 0xe87d: // star
-      return Icons.star;
-    case 0xe7fd: // person
-      return Icons.person;
-    case 0xe263: // wallet
-      return Icons.account_balance_wallet;
-    default:
-      return Icons.account_balance;
-  }
+IconData _iconFromCode(dynamic code) {
+  const icons = {
+    0xe88a: Icons.home,
+    0xe87d: Icons.star,
+    0xe7fd: Icons.person,
+    0xe263: Icons.account_balance_wallet,
+    0xe84f: Icons.settings,
+    0xe850: Icons.account_balance,
+  };
+
+  return icons[code] ?? Icons.account_balance;
 }
