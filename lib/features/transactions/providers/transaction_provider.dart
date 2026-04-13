@@ -234,4 +234,8 @@ class TransactionProvider with ChangeNotifier {
 }
 
   _autoCategory(String title) {}
+
+  void updateTransaction(t) {}
+
+  void deleteTransaction(id) {}
 }

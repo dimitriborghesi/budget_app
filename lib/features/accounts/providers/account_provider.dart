@@ -9,10 +9,16 @@ class AccountProvider with ChangeNotifier {
   List<Account> _accounts = [];
   List<Account> get accounts => _accounts;
 
-  void loadAccounts(String uid) {
+  // ✅ AJOUT HISTORIQUE
+  List<Map<String, dynamic>> _transfers = [];
+  List<Map<String, dynamic>> get transfers => _transfers;
+
+  // 🔄 LOAD
+  void loadAccounts() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    // ACCOUNTS
     _db
         .collection('accounts')
         .where('userId', isEqualTo: user.uid)
@@ -24,23 +30,52 @@ class AccountProvider with ChangeNotifier {
 
       notifyListeners();
     });
-  }
 
-  Future<void> addAccount(String name) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    await _db.collection('accounts').add({
-      'name': name,
-      'balance': 0,
-      'userId': user.uid,
+    // TRANSFERS
+    _db
+        .collection('transfers')
+        .where('userId', isEqualTo: user.uid)
+        .orderBy('date', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      _transfers = snapshot.docs.map((doc) => doc.data()).toList();
+      notifyListeners();
     });
   }
 
-  /// 🔥 FIX ERREUR transfer
-  Future<void> transfer(Account from, Account to, double amount) async {
+  // ➕ ADD ACCOUNT
+  Future<void> addAccount(String name, IconData icon, Color color) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  await _db.collection('accounts').add({
+    'name': name,
+    'balance': 0,
+    'userId': user.uid,
+    'icon': icon.codePoint,
+    'color': color.value,
+  });
+}
+
+  // ➕ swipe delete
+Future<void> deleteAccount(String id) async {
+  await _db.collection('accounts').doc(id).delete();
+}
+
+  // 🔁 TRANSFER COMPLET (5 PARAMS)
+  Future<void> transfer(
+    Account from,
+    Account to,
+    double amount,
+    String label,
+    String description,
+  ) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     if (from.balance < amount) return;
 
+    // UPDATE BALANCE
     await _db.collection('accounts').doc(from.id).update({
       'balance': FieldValue.increment(-amount),
     });
@@ -48,7 +83,16 @@ class AccountProvider with ChangeNotifier {
     await _db.collection('accounts').doc(to.id).update({
       'balance': FieldValue.increment(amount),
     });
-  }
 
-  Future<void> load(String uid) async {}
+    // SAVE HISTORY
+    await _db.collection('transfers').add({
+      'from': from.name,
+      'to': to.name,
+      'amount': amount,
+      'label': label,
+      'description': description,
+      'userId': user.uid,
+      'date': Timestamp.now(),
+    });
+  }
 }

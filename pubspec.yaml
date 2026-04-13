@@ -2,7 +2,7 @@ name: budget_app
 description: A new Flutter project.
 publish_to: 'none'
 
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
@@ -18,7 +18,7 @@ dependencies:
   sqflite: ^2.4.2
   path: ^1.9.1
   path_provider: ^2.1.5
-  local_auth: ^3.0.1
+  local_auth: ^2.1.6  
   uuid: ^4.5.3
   firebase_core: ^4.6.0
   firebase_auth: ^6.3.0
@@ -29,6 +29,9 @@ dependencies:
   vibration: ^3.1.8
   url_launcher: ^6.3.2
   in_app_purchase: ^3.1.13
+  shared_preferences: ^2.2.2
+  pdf: ^3.12.0
+  share_plus: ^7.2.1
 
 dev_dependencies:
   flutter_test:

@@ -6,7 +6,10 @@ import '../providers/transaction_provider.dart';
 class AddTransactionPopup extends StatefulWidget {
   final bool isIncome;
 
-  const AddTransactionPopup({super.key, required this.isIncome});
+  const AddTransactionPopup({
+    super.key,
+    required this.isIncome,
+  });
 
   @override
   State<AddTransactionPopup> createState() =>
@@ -23,23 +26,28 @@ class _AddTransactionPopupState
   String selectedAccount = "Principal";
 
   /// 🔥 CATEGORIES
-  final categories = [
-  {"name": "Courses", "icon": Icons.shopping_cart, "color": Colors.green},
-  {"name": "Loisirs", "icon": Icons.sports_esports, "color": Colors.purple},
-  {"name": "Travaux", "icon": Icons.home_repair_service, "color": Colors.orange},
-  {"name": "Cadeaux", "icon": Icons.card_giftcard, "color": Colors.red},
-  {"name": "Santé", "icon": Icons.favorite, "color": Colors.pink},
-  {"name": "Transport", "icon": Icons.directions_bus, "color": Colors.blue},
-  {"name": "Voiture", "icon": Icons.directions_car, "color": Colors.indigo},
-  {"name": "Assurances", "icon": Icons.security, "color": Colors.teal},
-  {"name": "Restaurant", "icon": Icons.restaurant, "color": Colors.deepOrange},
-  {"name": "Voyage", "icon": Icons.flight, "color": Colors.lightBlue},
-  {"name": "Paypal", "icon": Icons.account_balance_wallet, "color": Colors.blueAccent},
-  {"name": "Amazon", "icon": Icons.shopping_bag, "color": Colors.orangeAccent},
-  {"name": "Amende", "icon": Icons.warning, "color": Colors.redAccent},
-  {"name": "Shopping", "icon": Icons.store, "color": Colors.pinkAccent},
-  {"name": "Factures", "icon": Icons.receipt_long, "color": Colors.grey},
-];
+ late final List<Map<String, dynamic>> categories;
+
+@override
+void initState() {
+  super.initState();
+
+  categories = widget.isIncome
+      ? [
+          {"name": "Salaire", "icon": Icons.work, "color": Colors.green},
+          {"name": "Remboursement", "icon": Icons.reply, "color": Colors.blue},
+          {"name": "Anniversaire", "icon": Icons.cake, "color": Colors.orange},
+          {"name": "Don", "icon": Icons.volunteer_activism, "color": Colors.teal},
+          {"name": "Amis", "icon": Icons.people, "color": Colors.purple},
+        ]
+      : [
+          {"name": "Courses", "icon": Icons.shopping_cart, "color": Colors.green},
+          {"name": "Transport", "icon": Icons.directions_bus, "color": Colors.blue},
+          {"name": "Restaurant", "icon": Icons.restaurant, "color": Colors.deepOrange},
+          {"name": "Loisirs", "icon": Icons.sports_esports, "color": Colors.purple},
+          {"name": "Factures", "icon": Icons.receipt, "color": Colors.grey},
+        ];
+}
 
 String selectedCategory = "Courses";
 

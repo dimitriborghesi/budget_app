@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_auth/local_auth.dart';
 import '../main_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +21,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLogin = true;
   bool loading = false;
   String error = "";
+  bool rememberMe = false;
+  bool useBiometric = false;
 
   /// 🔐 LOGIN / SIGNUP
   Future<void> submit() async {
@@ -27,6 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
     loading = true;
     error = "";
   });
+
+  if (rememberMe) {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString("email", email.text.trim());
+}
 
   try {
     if (isLogin) {
@@ -118,9 +126,28 @@ if (!(updatedUser?.emailVerified ?? false)) {
   }
 
   @override
+void initState() {
+  super.initState();
+  loadSavedData();
+}
+
+Future<void> loadSavedData() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  final savedEmail = prefs.getString("email");
+
+  if (savedEmail != null) {
+    setState(() {
+      email.text = savedEmail;
+      rememberMe = true;
+    });
+  }
+}
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF060B05),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -160,8 +187,57 @@ if (!(updatedUser?.emailVerified ?? false)) {
 
                 const SizedBox(height: 10),
 
+Row(
+  children: [
+    Checkbox(
+      value: rememberMe,
+      activeColor: const Color(0xFF799C0A),
+      onChanged: (value) {
+        setState(() {
+          rememberMe = value ?? false;
+        });
+      },
+    ),
+    const Text(
+      "Se souvenir de moi",
+      style: TextStyle(color: Colors.white70),
+    ),
+  ],
+),
+
+const SizedBox(height: 5),
+
+Row(
+  children: [
+    Checkbox(
+      value: useBiometric,
+      activeColor: const Color(0xFF799C0A),
+      onChanged: (value) async {
+        setState(() {
+          useBiometric = value ?? false;
+        });
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool("biometric", useBiometric);
+      },
+    ),
+    const Text(
+      "Activer Face ID / empreinte",
+      style: TextStyle(color: Colors.white70),
+    ),
+  ],
+),
+
+                const SizedBox(height: 10),
+
                 if (error.isNotEmpty)
-                  Text(error, style: const TextStyle(color: Colors.red)),
+                  Text(
+  error,
+  style: const TextStyle(
+    color: Colors.orangeAccent,
+    fontWeight: FontWeight.w500,
+  ),
+),
 
                   if (error.contains("Email envoyé"))
   ElevatedButton(
@@ -170,16 +246,16 @@ if (!(updatedUser?.emailVerified ?? false)) {
 
       final user = FirebaseAuth.instance.currentUser;
 
-      if (user?.emailVerified ?? false) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainScreen()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Toujours pas vérifié")),
-        );
-      }
+if (user != null) {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => const MainScreen()),
+  );
+} else {
+  setState(() {
+    error = "Connecte-toi d'abord";
+  });
+}
     },
     child: const Text("J’ai vérifié mon email"),
   ),
@@ -196,21 +272,148 @@ if (!(updatedUser?.emailVerified ?? false)) {
 
                 const SizedBox(height: 10),
 
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      isLogin = !isLogin;
-                    });
-                  },
-                  child: Text(
-                    isLogin
-                        ? "Créer un compte"
-                        : "Déjà un compte ? Se connecter",
-                    style: const TextStyle(color: Colors.white70),
+               TextButton(
+  onPressed: () {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF060B05),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(25),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                /// 🔥 petit handle (style iOS)
+                Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                const Text(
+                  "Créer un compte",
+                  style: TextStyle(
+                    color: Color(0xFFE7EAE7),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// 📧 EMAIL
+                TextField(
+                  controller: email,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "Email",
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    filled: true,
+                    fillColor: const Color(0xFF0D140A),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                /// 🔑 PASSWORD
+                TextField(
+                  controller: password,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "Mot de passe",
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    filled: true,
+                    fillColor: const Color(0xFF0D140A),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// 💎 BOUTON CREATE
+                Container(
+                  width: double.infinity,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF799C0A),
+                        Color(0xFF5F7F08),
+                      ],
+                    ),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+
+                      setState(() {
+                        isLogin = false;
+                      });
+
+                      await submit(); // 🔥 réutilise ton code
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                    ),
+                    child: const Text(
+                      "Créer un compte",
+                      style: TextStyle(
+                        color: Color(0xFFE7EAE7),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: 10),
+
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "Annuler",
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  },
+  child: const Text(
+    "Créer un compte",
+    style: TextStyle(color: Colors.white70),
+  ),
+),
 
                 // 🔑 RESET PASSWORD
                 TextButton(
@@ -222,14 +425,6 @@ if (!(updatedUser?.emailVerified ?? false)) {
                 ),
 
                 const SizedBox(height: 20),
-
-                // 🔐 BIOMETRIC
-                ElevatedButton.icon(
-                  style: _buttonStyle(),
-                  onPressed: biometricLogin,
-                  icon: const Icon(Icons.fingerprint),
-                  label: const Text("Connexion biométrique"),
-                ),
               ],
             ),
           ),
@@ -240,21 +435,26 @@ if (!(updatedUser?.emailVerified ?? false)) {
 
   /// 🎨 UI helpers
   InputDecoration _input(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Colors.grey),
-      filled: true,
-      fillColor: Colors.white10,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-    );
-  }
+  return InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: Colors.white38),
+    filled: true,
+    fillColor: const Color(0xFF0D140A),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
+  );
+}
 
   ButtonStyle _buttonStyle() {
-    return ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF6C63FF),
-      minimumSize: const Size(double.infinity, 50),
-    );
-  }
+  return ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xFF799C0A),
+    foregroundColor: const Color(0xFFE7EAE7),
+    minimumSize: const Size(double.infinity, 55),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+    ),
+  );
+}
 }

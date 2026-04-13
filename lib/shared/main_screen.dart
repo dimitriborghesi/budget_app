@@ -57,7 +57,7 @@ class _MainScreenState extends State<MainScreen> {
     try {
       /// LOAD
       transactionProvider.loadTransactions();
-      accountProvider.loadAccounts(user.uid);
+      accountProvider.loadAccounts();
       await recurringProvider.load();
 
       /// 🔥 AUTO EXECUTION
