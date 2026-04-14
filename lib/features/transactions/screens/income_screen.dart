@@ -34,12 +34,12 @@ class _IncomeScreenState extends State<IncomeScreen> {
       backgroundColor: const Color(0xFF0A0A0A),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF34C759),
+        backgroundColor: const Color(0xFF799C0A),
         onPressed: () {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            backgroundColor: Colors.transparent,
+            backgroundColor: const Color(0xFF060B05),
             builder: (_) =>
                 const AddTransactionPopup(isIncome: true),
           );
@@ -98,7 +98,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                                   vertical: 6),
                           decoration: BoxDecoration(
                             color: showUncheckedOnly
-                                ? const Color(0xFF34C759)
+                                ? const Color(0xFF799C0A)
                                 : Colors.white10,
                             borderRadius:
                                 BorderRadius.circular(20),

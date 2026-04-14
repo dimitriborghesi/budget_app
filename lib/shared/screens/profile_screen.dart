@@ -121,7 +121,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("Profil"),
+        title: const Text("Profil", 
+            style: TextStyle(color: Colors.white)),
       ),
 
       body: SafeArea(

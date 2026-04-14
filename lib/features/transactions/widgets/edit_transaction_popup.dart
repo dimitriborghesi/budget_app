@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
+import '../../accounts/providers/account_provider.dart';
 
 class EditTransactionPopup extends StatefulWidget {
   final TransactionModel transaction;
@@ -19,8 +20,8 @@ class _EditTransactionPopupState
   late TextEditingController titleController;
   late TextEditingController amountController;
 
-  String selectedAccount = "Principal";
-  String selectedCategory = "Courses";
+  String selectedAccount = "";
+  String selectedCategory = "";
 
   final categories = [
     {"name": "Santé", "icon": Icons.favorite, "color": Colors.pink},
@@ -51,10 +52,18 @@ class _EditTransactionPopupState
         text: widget.transaction.amount.toString());
 
     selectedCategory = widget.transaction.category;
+    selectedAccount = widget.transaction.account;
   }
 
   @override
   Widget build(BuildContext context) {
+    final accounts = context.watch<AccountProvider>().accounts;
+
+    if (accounts.isNotEmpty &&
+        !accounts.any((a) => a.name == selectedAccount)) {
+      selectedAccount = accounts.first.name;
+    }
+
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -70,135 +79,164 @@ class _EditTransactionPopupState
       ),
       child: SingleChildScrollView(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// BAR
-            Container(
-              width: 40,
-              height: 5,
-              margin: const EdgeInsets.only(bottom: 15),
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+            _bar(),
 
-            /// TITLE
-            TextField(
-              controller: titleController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: "Titre",
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-            ),
+            _input(titleController, "Titre"),
+            _input(amountController, "Montant"),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
-            /// AMOUNT
-            TextField(
-              controller: amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: "Montant",
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-            ),
+            /// 💳 ACCOUNTS
+            _accountSelector(accounts),
 
             const SizedBox(height: 20),
 
             /// 🔥 CATEGORIES
-            SizedBox(
-              height: 70,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, index) {
-                  final cat = categories[index];
-                  final isSelected = selectedCategory == cat["name"];
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedCategory = cat["name"] as String;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? cat["color"] as Color
-                            : const Color(0xFF2C2C2E),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            cat["icon"] as IconData,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            cat["name"] as String,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            _categorySelector(),
 
             const SizedBox(height: 30),
 
-            /// BUTTON
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  final updated = TransactionModel(
-  id: widget.transaction.id,
-  title: titleController.text,
-  amount: double.tryParse(
-          amountController.text.replaceAll(',', '.')) ??
-      0,
-  isIncome: widget.transaction.isIncome,
-  category: selectedCategory,
-  account: widget.transaction.account,
-  date: widget.transaction.date,
-  userId: widget.transaction.userId,
-);
-
-                  Provider.of<TransactionProvider>(context, listen: false)
-                      .update(updated);
-
-                  Navigator.pop(context);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Transaction modifiée"),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7B61FF),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: const Text("Modifier"),
-              ),
-            ),
+            _button(context),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _bar() => Container(
+        width: 40,
+        height: 5,
+        margin: const EdgeInsets.only(bottom: 15),
+        decoration: BoxDecoration(
+          color: Colors.white24,
+          borderRadius: BorderRadius.circular(10),
+        ),
+      );
+
+  Widget _input(TextEditingController c, String hint) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: TextField(
+          controller: c,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+
+  Widget _accountSelector(accounts) {
+    return SizedBox(
+      height: 60,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: accounts.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final acc = accounts[i];
+          final selected = selectedAccount == acc.name;
+
+          return GestureDetector(
+            onTap: () => setState(() => selectedAccount = acc.name),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: selected
+                    ? Color(acc.color)
+                    : const Color(0xFF2C2C2E),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  Icon(acc.icon, color: Colors.white, size: 18),
+                  const SizedBox(width: 6),
+                  Text(acc.name,
+                      style: const TextStyle(color: Colors.white)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _categorySelector() {
+    return SizedBox(
+      height: 70,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final cat = categories[i];
+          final selected = selectedCategory == cat["name"];
+
+          return GestureDetector(
+            onTap: () =>
+                setState(() => selectedCategory = cat["name"] as String),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: selected
+                    ? cat["color"] as Color
+                    : const Color(0xFF2C2C2E),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  Icon(cat["icon"] as IconData,
+                      color: Colors.white, size: 18),
+                  const SizedBox(width: 6),
+                  Text(cat["name"] as String,
+                      style: const TextStyle(color: Colors.white)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _button(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          final updated = TransactionModel(
+            id: widget.transaction.id,
+            title: titleController.text,
+            amount: double.tryParse(
+                    amountController.text.replaceAll(',', '.')) ??
+                0,
+            isIncome: widget.transaction.isIncome,
+            category: selectedCategory,
+            account: selectedAccount, // 🔥 FIX
+            date: widget.transaction.date,
+            userId: widget.transaction.userId,
+          );
+
+          context.read<TransactionProvider>().update(updated);
+
+          Navigator.pop(context);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Transaction modifiée")),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF7B61FF),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+        child: const Text("Modifier"),
       ),
     );
   }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
+import '../../accounts/providers/account_provider.dart';
 import '../providers/recurring_provider.dart';
 import '../models/recurring.dart';
+
 
 class AddRecurringPopup extends StatefulWidget {
   final Recurring? edit;
@@ -16,198 +19,380 @@ class AddRecurringPopup extends StatefulWidget {
 class _AddRecurringPopupState extends State<AddRecurringPopup> {
   final titleController = TextEditingController();
   final amountController = TextEditingController();
+  late FixedExtentScrollController dayController;
+  late FixedExtentScrollController intervalController;
 
   int day = 1;
-  bool isIncome = false;
-  String category = "Netflix";
+  int interval = 1;
 
-  final categories = [
-    "Netflix",
-    "Amazon",
-    "Uber",
-    "Loyer",
-    "Électricité",
-    "Eau",
-    "Salaire",
+  String selectedAccount = "";
+  String selectedCategory = "Courses";
+  bool isIncome = false;
+
+  DateTime? _lastHaptic;
+
+  final incomeCategories = [
+    {"name": "Salaire", "icon": Icons.work, "color": Colors.green},
+    {"name": "Remboursement", "icon": Icons.reply, "color": Colors.blue},
+    {"name": "Anniversaire", "icon": Icons.cake, "color": Colors.orange},
+    {"name": "Don", "icon": Icons.volunteer_activism, "color": Colors.teal},
+    {"name": "Amis", "icon": Icons.people, "color": Colors.purple},
   ];
 
-  @override
-  void initState() {
-    super.initState();
+  final expenseCategories = [
+    {"name": "Courses", "icon": Icons.shopping_cart, "color": Colors.green},
+    {"name": "Santé", "icon": Icons.favorite, "color": Colors.pink},
+    {"name": "Loisirs", "icon": Icons.sports_esports, "color": Colors.purple},
+    {"name": "Transport", "icon": Icons.directions_bus, "color": Colors.blue},
+    {"name": "Restaurant", "icon": Icons.restaurant, "color": Colors.deepOrange},
+    {"name": "Factures", "icon": Icons.receipt_long, "color": Colors.grey},
+  ];
 
-    if (widget.edit != null) {
-      titleController.text = widget.edit!.title;
-      amountController.text = widget.edit!.amount.toString();
-      day = widget.edit!.day;
-      isIncome = widget.edit!.isIncome;
-      category = widget.edit!.category;
-    }
+@override
+void initState() {
+  super.initState();
+
+  if (widget.edit != null) {
+    final r = widget.edit!;
+
+    titleController.text = r.title;
+    amountController.text = r.amount.toString();
+    selectedAccount = r.account;
+    selectedCategory = r.category;
+    isIncome = r.isIncome;
+    day = r.day;
+    interval = r.interval;
   }
 
-  IconData getIcon(String cat) {
-    switch (cat) {
-      case "Netflix":
-        return Icons.movie;
-      case "Amazon":
-        return Icons.shopping_bag;
-      case "Uber":
-        return Icons.local_taxi;
-      case "Loyer":
-        return Icons.home;
-      case "Électricité":
-        return Icons.flash_on;
-      case "Eau":
-        return Icons.water_drop;
-      case "Salaire":
-        return Icons.attach_money;
-      default:
-        return Icons.repeat;
-    }
-  }
+  /// 🔥 IMPORTANT
+  dayController = FixedExtentScrollController(initialItem: day - 1);
+  intervalController =
+      FixedExtentScrollController(initialItem: interval - 1);
+}
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<RecurringProvider>(context, listen: false);
+    final provider = context.read<RecurringProvider>();
+    final accounts = context.watch<AccountProvider>().accounts;
+
+    /// 🔥 AUTO SELECT COMPTE
+    if (accounts.isNotEmpty && selectedAccount.isEmpty) {
+      selectedAccount = accounts.first.name;
+    }
+
+    final categories =
+        isIncome ? incomeCategories : expenseCategories;
 
     return Dialog(
       backgroundColor: Colors.transparent,
       child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.edit == null
-                    ? "Nouvelle récurrence"
-                    : "Modifier",
-                style:
-                    const TextStyle(color: Colors.white, fontSize: 18),
-              ),
+  padding: EdgeInsets.only(
+    bottom: MediaQuery.of(context).viewInsets.bottom,
+  ),
+  child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C1C1E),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
 
-              const SizedBox(height: 20),
+            const Text("Nouvelle récurrence",
+                style: TextStyle(color: Colors.white, fontSize: 18)),
 
-              _input("Titre", titleController),
-              _input("Montant", amountController),
+            const SizedBox(height: 20),
 
-              /// JOUR
-              Row(
-                children: [
-                  const Text("Jour",
-                      style: TextStyle(color: Colors.grey)),
-                  const Spacer(),
-                  DropdownButton<int>(
-                    value: day,
-                    dropdownColor: const Color(0xFF2C2C2E),
-                    items: List.generate(
-                      31,
-                      (i) => DropdownMenuItem(
-                        value: i + 1,
-                        child: Text("${i + 1}",
-                            style: const TextStyle(
-                                color: Colors.white)),
+            _input("Titre", titleController),
+            _input("Montant", amountController),
+
+            const SizedBox(height: 15),
+
+            _accounts(accounts),
+
+            const SizedBox(height: 20),
+
+            /// TYPE
+            Row(
+              children: [
+                _typeButton("Dépense", false),
+                const SizedBox(width: 10),
+                _typeButton("Revenu", true),
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            /// 🔥 ANIM CATEGORIES
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: SizedBox(
+                key: ValueKey(isIncome),
+                height: 70,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: categories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (_, i) {
+                    final cat = categories[i];
+                    final selected =
+                        selectedCategory == cat["name"];
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedCategory = cat["name"] as String;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? cat["color"] as Color
+                              : const Color(0xFF2C2C2E),
+                          borderRadius:
+                              BorderRadius.circular(18),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(cat["icon"] as IconData,
+                                color: Colors.white, size: 18),
+                            const SizedBox(width: 6),
+                            Text(cat["name"] as String,
+                                style: const TextStyle(
+                                    color: Colors.white)),
+                          ],
+                        ),
                       ),
-                    ),
-                    onChanged: (v) => setState(() => day = v!),
-                  ),
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// LABELS
+            Row(
+              children: const [
+                Expanded(
+                    child: Center(
+                        child: Text("Jour",
+                            style: TextStyle(color: Colors.grey)))),
+                Expanded(
+                    child: Center(
+                        child: Text("Tous les",
+                            style: TextStyle(color: Colors.grey)))),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// PICKERS
+            SizedBox(
+              height: 90,
+              child: Row(
+                children: [
+                  Expanded(child: _pickerDay()),
+                  Expanded(child: _pickerInterval()),
                 ],
               ),
+            ),
 
-              const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-              /// CATÉGORIES
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: categories.map((c) {
-                  final selected = c == category;
+            /// 🔥 PREVIEW
+            Text(
+              _nextExecutionText(),
+              style: const TextStyle(
+                  color: Colors.grey, fontSize: 13),
+            ),
 
-                  return GestureDetector(
-                    onTap: () => setState(() => category = c),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? const Color(0xFF7B61FF)
-                            : const Color(0xFF2C2C2E),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(getIcon(c),
-                              size: 16, color: Colors.white),
-                          const SizedBox(width: 6),
-                          Text(c,
-                              style: const TextStyle(
-                                  color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
+            const SizedBox(height: 20),
 
-              const SizedBox(height: 10),
-
-              /// SWITCH
-              Row(
-                children: [
-                  const Text("Revenu",
-                      style: TextStyle(color: Colors.grey)),
-                  const Spacer(),
-                  Switch(
-                    value: isIncome,
-                    onChanged: (v) =>
-                        setState(() => isIncome = v),
-                    activeTrackColor: Colors.green,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              ElevatedButton(
+            /// BUTTON
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7B61FF),
+                  backgroundColor: const Color(0xFF799C0A),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                onPressed: () async {
-                  final r = Recurring(
-                    id: widget.edit?.id ?? "",
-                    title: titleController.text,
-                    amount: double.tryParse(
-                            amountController.text) ??
-                        0,
-                    account: "Principal",
-                    category: category,
-                    isIncome: isIncome,
-                    day: day,
-                    enabled: widget.edit?.enabled ?? true,
-                    done: widget.edit?.done ?? false,
-                  );
+                 onPressed: () async {
+  final raw = amountController.text
+    .replaceAll(',', '.')
+    .replaceAll(' ', '');
 
-                  if (widget.edit == null) {
-                    await provider.add(r);
-                  } else {
-                    await provider.update(r);
-                  }
+  final r = Recurring(
+    id: widget.edit?.id ?? "",
+    title: titleController.text,
+    amount: double.tryParse(raw) ?? 0,
+    account: selectedAccount,
+    category: selectedCategory,
+    isIncome: isIncome,
+    day: day,
+    interval: interval,
+    enabled: true,
+    done: false,
+  );
 
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                  }
-                },
+  if (widget.edit != null) {
+    await provider.update(r);
+  } else {
+    await provider.add(r);
+  }
+
+  if (context.mounted) Navigator.pop(context);
+},
                 child: Text(
-                    widget.edit == null ? "Ajouter" : "Modifier"),
+  widget.edit != null ? "Modifier la récurrence" : "Nouvelle récurrence",
+  style: const TextStyle(color: Colors.white),
+),
+            ),
+            )
+          ],
+        ),
+      ),
+    )
+    );
+  }
+
+  /// 🔥 HAPTIC SMART
+  void _haptic() {
+    final now = DateTime.now();
+    if (_lastHaptic == null ||
+        now.difference(_lastHaptic!) > const Duration(milliseconds: 60)) {
+      HapticFeedback.selectionClick();
+      _lastHaptic = now;
+    }
+  }
+
+  Widget _pickerDay() {
+    return CupertinoPicker(
+  scrollController: dayController,
+      itemExtent: 28,
+      onSelectedItemChanged: (i) {
+        _haptic();
+        setState(() => day = i + 1);
+      },
+      children: List.generate(
+        31,
+        (i) => Center(
+            child: Text("${i + 1}",
+                style: const TextStyle(color: Colors.white))),
+      ),
+    );
+  }
+
+  Widget _pickerInterval() {
+    return CupertinoPicker(
+  scrollController: intervalController,
+      itemExtent: 28,
+      onSelectedItemChanged: (i) {
+        _haptic();
+        setState(() => interval = i + 1);
+      },
+      children: List.generate(
+        12,
+        (i) => Center(
+            child: Text("${i + 1} mois",
+                style: const TextStyle(color: Colors.white))),
+      ),
+    );
+  }
+
+  String _nextExecutionText() {
+    final now = DateTime.now();
+
+    int month = now.month;
+    int year = now.year;
+
+    if (now.day >= day) {
+      month += interval;
+    }
+
+    while (month > 12) {
+      month -= 12;
+      year++;
+    }
+
+    final date = DateTime(year, month, day);
+
+    const months = [
+      "janvier","février","mars","avril","mai","juin",
+      "juillet","août","septembre","octobre","novembre","décembre"
+    ];
+
+    return "Prochaine exécution le ${date.day} ${months[date.month - 1]}";
+  }
+
+  Widget _accounts(accounts) {
+    return SizedBox(
+      height: 60,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: accounts.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final acc = accounts[i];
+          final selected = selectedAccount == acc.name;
+
+          return GestureDetector(
+            onTap: () => setState(() => selectedAccount = acc.name),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: selected
+                    ? Color(acc.color)
+                    : const Color(0xFF2C2C2E),
+                borderRadius: BorderRadius.circular(18),
               ),
-            ],
+              child: Row(
+                children: [
+                  Icon(acc.icon, color: Colors.white, size: 18),
+                  const SizedBox(width: 6),
+                  Text(acc.name,
+                      style: const TextStyle(color: Colors.white)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _typeButton(String text, bool value) {
+    final selected = isIncome == value;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            isIncome = value;
+            selectedCategory = value
+                ? incomeCategories.first["name"] as String
+                : expenseCategories.first["name"] as String;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? const Color(0xFF799C0A)
+                : const Color(0xFF2C2C2E),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(text,
+                style: const TextStyle(color: Colors.white)),
           ),
         ),
       ),

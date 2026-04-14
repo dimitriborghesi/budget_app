@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../features/transactions/providers/transaction_provider.dart';
 import '../../features/transactions/screens/expense_screen.dart';
 import '../../features/transactions/widgets/transaction_card.dart';
+import 'package:budget_app/core/utils/category_utils.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -50,22 +51,19 @@ class _StatsScreenState extends State<StatsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF060B05),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text("Statistiques",
+            style: TextStyle(color: Colors.white)),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              /// 🔥 HEADER
-              const Text("Statistics",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold)),
-
-              const SizedBox(height: 20),
 
               /// 📅 FILTRE PROPRE
               _monthSelector(),

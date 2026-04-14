@@ -8,6 +8,7 @@ class Recurring {
   final String category;
   final bool isIncome;
   final int day;
+  final int interval;
   final DateTime? lastRun;
   final bool enabled;
   bool done;
@@ -19,6 +20,7 @@ class Recurring {
     required this.account,
     required this.category,
     required this.isIncome,
+    required this.interval, // 🔥 AJOUT ICI
     required this.day,
     this.done = false,
     this.lastRun,
@@ -34,6 +36,7 @@ class Recurring {
       category: data['category'] ?? '',
       isIncome: data['isIncome'] ?? false,
       day: data['day'] ?? 1,
+      interval: data['interval'] ?? 1,
       done: data['done'] ?? false, // 🔥 FIX
       lastRun: data['lastRun'] != null
           ? (data['lastRun'] as Timestamp).toDate()
@@ -53,6 +56,7 @@ class Recurring {
       'done': done, // 🔥 FIX
       'lastRun': lastRun,
       'enabled': enabled,
+      "interval": interval,
     };
   }
 }

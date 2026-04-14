@@ -238,4 +238,8 @@ class TransactionProvider with ChangeNotifier {
   void updateTransaction(t) {}
 
   void deleteTransaction(id) {}
+
+  Future<void> addExisting(TransactionModel t) async {
+  await _db.collection('transactions').doc(t.id).set(t.toMap());
+}
 }

@@ -91,9 +91,9 @@ class _MainScreenState extends State<MainScreen> {
 
   setState(() => index = i);
 },
-          backgroundColor: Colors.black,
-          selectedItemColor: const Color(0xFF7B61FF),
-          unselectedItemColor: Colors.grey,
+          backgroundColor: const Color(0xFF060B05),
+          selectedItemColor: const Color(0xFF799C0A),
+          unselectedItemColor: Colors.white,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
 

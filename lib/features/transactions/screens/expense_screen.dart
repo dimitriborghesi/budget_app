@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
 import '../widgets/add_transaction_popup.dart';
 import '../widgets/transaction_card.dart';
+import 'package:budget_app/core/utils/category_utils.dart';
 
 class ExpenseScreen extends StatefulWidget {
   const ExpenseScreen({super.key});
@@ -36,17 +37,17 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       backgroundColor: const Color(0xFF0A0A0A),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF7B61FF),
+        backgroundColor: const Color(0xFF799C0A),
         onPressed: () {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            backgroundColor: Colors.transparent,
+            backgroundColor: const Color(0xFF060B05),
             builder: (_) =>
                 const AddTransactionPopup(isIncome: false),
           );
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
 
       body: SafeArea(
@@ -89,7 +90,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                     horizontal: 14),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF7B61FF)
+                                  ? const Color(0xFF799C0A)
                                   : Colors.white10,
                               borderRadius:
                                   BorderRadius.circular(20),
@@ -147,7 +148,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                   vertical: 6),
                           decoration: BoxDecoration(
                             color: showUncheckedOnly
-                                ? const Color(0xFF7B61FF)
+                                ? const Color(0xFF799C0A)
                                 : Colors.white10,
                             borderRadius:
                                 BorderRadius.circular(20),
