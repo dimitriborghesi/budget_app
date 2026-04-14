@@ -1,9 +1,11 @@
+import 'package:budget_app/features/transactions/widgets/edit_transaction_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:budget_app/core/utils/category_utils.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../../../core/providers/category_provider.dart';
 
 class TransactionCard extends StatefulWidget {
   final TransactionModel t;
@@ -30,19 +32,38 @@ Widget build(BuildContext context) {
   final provider = context.read<TransactionProvider>();
   final t = widget.t;
 
+final cat = context
+    .watch<CategoryProvider>()
+    .getByName(t.category);
+
   return GestureDetector(
+
+  /// 👉 TAP = EDIT
+  onTap: () {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => EditTransactionPopup(transaction: t),
+    );
+  },
     onHorizontalDragUpdate: (details) {
-      setState(() {
-       offset = (offset + details.delta.dx).clamp(-150, 150);
-        offset = offset.clamp(-120, 120);
-      });
-    },
+  setState(() {
+    offset = (offset + details.delta.dx).clamp(-120, 120);
+  });
+
+  /// 🔥 vibration légère quand on passe un seuil
+  if (offset > 60 && offset < 65) {
+    HapticFeedback.lightImpact();
+  }
+},
 
    onHorizontalDragEnd: (_) async {
 
   /// 👉 DROITE = CHECK
-  if (offset > 70) {
-    final updated = TransactionModel(
+if (offset > 90) {
+  HapticFeedback.heavyImpact();
+  final updated = TransactionModel(
       id: t.id,
       title: t.title,
       amount: t.amount,
@@ -88,24 +109,28 @@ Widget build(BuildContext context) {
     await provider.delete(t);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    content: const Text("Supprimé"),
-    duration: const Duration(seconds: 3),
-    action: SnackBarAction(
-      label: "Annuler",
-      onPressed: () async {
-        await provider.add(
-          title: deleted.title,
-          amount: deleted.amount,
-          account: deleted.account,
-          category: deleted.category,
-          isIncome: deleted.isIncome,
-        );
-      },
+      ScaffoldMessenger.of(context)
+  ..hideCurrentSnackBar()
+  ..showSnackBar(
+    SnackBar(
+      content: const Text("Supprimé"),
+      duration: const Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      action: SnackBarAction(
+        label: "Annuler",
+        textColor: Colors.white,
+        onPressed: () async {
+          await provider.add(
+            title: deleted.title,
+            amount: deleted.amount,
+            account: deleted.account,
+            category: deleted.category,
+            isIncome: deleted.isIncome,
+          );
+        },
+      ),
     ),
-  ),
-);
+  );
     }
 
     await Future.delayed(const Duration(milliseconds: 100));
@@ -135,83 +160,80 @@ Widget build(BuildContext context) {
 
     /// 🔥 BACKGROUND
     Positioned.fill(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
 
-          /// 👉 GAUCHE = CHECK
-          Transform.translate(
+      /// 👉 GAUCHE = CHECK
+      if (!isReleasing && offset > 20)
+        Padding(
+          padding: const EdgeInsets.only(left: 20),
+          child: Transform.translate(
             offset: Offset(offset.clamp(0, 70) - 70, 0),
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 100),
-                opacity: isReleasing
-    ? 0
-    : ((offset.abs() - 30) / 60).clamp(0, 1),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: previewChecked ?? t.isChecked
-                        ? const LinearGradient(
-                            colors: [
-                              Color(0xFF611313),
-                              Color(0xFF2B0D0D),
-                            ],
-                          )
-                        : const LinearGradient(
-                            colors: [
-                              Color(0xFF1B3C10),
-                              Color(0xFF3C460A),
-                            ],
-                          ),
-                  ),
-                  child: Icon(
-                    previewChecked ?? t.isChecked ? Icons.close : Icons.check,
-                    color: Colors.white,
-                  ),
-                ),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: (previewChecked ?? t.isChecked)
+                    ? const LinearGradient(
+                        colors: [
+                          Color(0xFF611313),
+                          Color(0xFF2B0D0D),
+                        ],
+                      )
+                    : const LinearGradient(
+                        colors: [
+                          Color(0xFF1B3C10),
+                          Color(0xFF3C460A),
+                        ],
+                      ),
+              ),
+              child: Icon(
+                (previewChecked ?? t.isChecked)
+                    ? Icons.close
+                    : Icons.check,
+                color: Colors.white,
               ),
             ),
           ),
+        )
+      else
+        const SizedBox(width: 60),
 
-          /// 👉 DROITE = DELETE
-          Transform.translate(
+      /// 👉 DROITE = DELETE
+      if (!isReleasing && offset < -20)
+        Padding(
+          padding: const EdgeInsets.only(right: 20),
+          child: Transform.translate(
             offset: Offset(offset.clamp(-70, 0) + 70, 0),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 100),
-                opacity: isReleasing
-    ? 0
-    : ((offset.abs() - 30) / 60).clamp(0, 1),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF611313),
-                        Color(0xFF2B0D0D),
-                      ],
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF611313),
+                    Color(0xFF2B0D0D),
+                  ],
                 ),
+              ),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
               ),
             ),
           ),
-        ],
-      ),
-    ),
+        )
+      else
+        const SizedBox(width: 60),
+    ],
+  ),
+),
+     
 
     /// 🔥 CARD DEVANT
     AnimatedContainer(
-      duration: const Duration(milliseconds: 80),
+      duration: const Duration(milliseconds: 60),
       transform: Matrix4.translationValues(offset, 0, 0),
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(16),
@@ -228,11 +250,11 @@ Widget build(BuildContext context) {
   padding: const EdgeInsets.all(10),
   decoration: BoxDecoration(
     borderRadius: BorderRadius.circular(12),
-    color: getCategoryColor(t.category).withOpacity(0.2),
+    color: (cat?.color ?? Colors.white).withOpacity(0.2),
   ),
   child: Icon(
-    getCategoryIcon(t.category),
-    color: getCategoryColor(t.category),
+    cat?.icon ?? Icons.category,
+    color: cat?.color ?? Colors.white,
     size: 18,
   ),
 ),
@@ -319,8 +341,8 @@ Widget build(BuildContext context) {
 ),
     ),
   ],
-),
-    );
+    ),
+  );
 }
 }
 String _formatDate(DateTime date) {

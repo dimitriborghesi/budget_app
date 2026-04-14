@@ -40,13 +40,21 @@ class _AddRecurringPopupState extends State<AddRecurringPopup> {
   ];
 
   final expenseCategories = [
-    {"name": "Courses", "icon": Icons.shopping_cart, "color": Colors.green},
-    {"name": "Santé", "icon": Icons.favorite, "color": Colors.pink},
-    {"name": "Loisirs", "icon": Icons.sports_esports, "color": Colors.purple},
-    {"name": "Transport", "icon": Icons.directions_bus, "color": Colors.blue},
-    {"name": "Restaurant", "icon": Icons.restaurant, "color": Colors.deepOrange},
-    {"name": "Factures", "icon": Icons.receipt_long, "color": Colors.grey},
-  ];
+  {"name": "Courses", "icon": Icons.shopping_cart, "color": Colors.green},
+  {"name": "Santé", "icon": Icons.favorite, "color": Colors.pink},
+  {"name": "Loisirs", "icon": Icons.sports_esports, "color": Colors.purple},
+  {"name": "Transport", "icon": Icons.directions_bus, "color": Colors.blue},
+  {"name": "Restaurant", "icon": Icons.restaurant, "color": Colors.deepOrange},
+  {"name": "Factures", "icon": Icons.receipt_long, "color": Colors.grey},
+
+  /// 🔥 NEW
+  {"name": "Maison", "icon": Icons.home, "color": Colors.brown},
+  {"name": "Voyage", "icon": Icons.flight, "color": Colors.lightBlue},
+  {"name": "Travaux", "icon": Icons.construction, "color": Colors.orange},
+  {"name": "Essence", "icon": Icons.local_gas_station, "color": Colors.redAccent},
+  {"name": "Assurance", "icon": Icons.security, "color": Colors.indigo},
+  {"name": "Voiture", "icon": Icons.directions_car, "color": Colors.blueGrey},
+];
 
 @override
 void initState() {

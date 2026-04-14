@@ -31,7 +31,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
         incomes.fold<double>(0.0, (sum, t) => sum + t.amount);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: const Color(0xFF060B05),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF799C0A),

@@ -2,7 +2,7 @@ import 'package:budget_app/shared/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'core/providers/category_provider.dart';
 import 'features/transactions/providers/transaction_provider.dart';
 import 'features/accounts/providers/account_provider.dart';
 import 'features/recurring/providers/recurring_provider.dart';
@@ -32,6 +32,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => AccountProvider()),
         ChangeNotifierProvider(create: (_) => RecurringProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
       ],
       child: MaterialApp(
         scaffoldMessengerKey: messengerKey,

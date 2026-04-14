@@ -14,7 +14,7 @@ class RecurringScreen extends StatelessWidget {
     final provider = context.watch<RecurringProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: const Color(0xFF060B05),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF799C0A),

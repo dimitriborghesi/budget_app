@@ -96,6 +96,7 @@ class _MainScreenState extends State<MainScreen> {
           unselectedItemColor: Colors.white,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
+          
 
           items: const [
             BottomNavigationBarItem(
