@@ -126,26 +126,28 @@ class _CreateCategoryScreenState
     final provider = context.read<CategoryProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF151515),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.black,
         title: const Text("Nouvelle catégorie"),
       ),
       body: SingleChildScrollView(
-  padding: EdgeInsets.only(
-    left: 20,
-    right: 20,
-    bottom: MediaQuery.of(context).viewInsets.bottom,
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
             /// 🔥 PREVIEW
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: selectedColor.withOpacity(0.2),
+                color: selectedColor.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -157,7 +159,9 @@ class _CreateCategoryScreenState
                     nameController.text.isEmpty
                         ? "Nom catégorie"
                         : nameController.text,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -169,12 +173,13 @@ class _CreateCategoryScreenState
             TextField(
               controller: nameController,
               onChanged: (_) => setState(() {}),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 hintText: "Nom",
-                hintStyle: const TextStyle(color: Colors.grey),
+                hintStyle:
+                    const TextStyle(color: Colors.black54),
                 filled: true,
-                fillColor: const Color(0xFF2C2C2E),
+                fillColor: const Color(0xFFF5F5F7),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
@@ -185,68 +190,58 @@ class _CreateCategoryScreenState
             const SizedBox(height: 20),
 
             /// ICONS
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Icône",
-                  style: TextStyle(color: Colors.grey)),
-            ),
+            const Text("Icône",
+                style: TextStyle(color: Colors.black54)),
 
             const SizedBox(height: 10),
 
             Wrap(
-  spacing: 10,
-  children: colors.map((c) {
-    final selected = selectedColor == c;
+              spacing: 12,
+              runSpacing: 12,
+              children: icons.map((icon) {
+                final selected = selectedIcon == icon;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() => selectedColor = c);
-      },
-      child: AnimatedContainer(
-  duration: const Duration(milliseconds: 200),
-  transform: selected
-      ? (Matrix4.identity()..scale(1.2))
-      : Matrix4.identity(),
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => selectedIcon = icon);
+                  },
+                  child: AnimatedContainer(
+                    duration:
+                        const Duration(milliseconds: 200),
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? selectedColor.withOpacity(0.2)
+                          : const Color(0xFFF0F0F0),
+                      borderRadius: BorderRadius.circular(12),
+                      border: selected
+                          ? Border.all(
+                              color: selectedColor, width: 2)
+                          : null,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: selected
+                          ? selectedColor
+                          : Colors.black54,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
 
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          color: c,
-          shape: BoxShape.circle,
-
-          /// 🔥 BORDER
-          border: selected
-              ? Border.all(color: Colors.white, width: 2)
-              : null,
-
-          /// 🔥 BONUS SHADOW
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: c.withOpacity(0.6),
-                    blurRadius: 8,
-                  )
-                ]
-              : [],
-        ),
-      ),
-    );
-  }).toList(),
-),
-
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
 
             /// COLORS
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Couleur",
-                  style: TextStyle(color: Colors.grey)),
-            ),
+            const Text("Couleur",
+                style: TextStyle(color: Colors.black54)),
 
             const SizedBox(height: 10),
 
             Wrap(
-              spacing: 10,
+              spacing: 12,
+              runSpacing: 12,
               children: colors.map((c) {
                 final selected = selectedColor == c;
 
@@ -254,16 +249,26 @@ class _CreateCategoryScreenState
                   onTap: () {
                     setState(() => selectedColor = c);
                   },
-                  child: Container(
-                    width: 30,
-                    height: 30,
+                  child: AnimatedContainer(
+                    duration:
+                        const Duration(milliseconds: 200),
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: c,
                       shape: BoxShape.circle,
                       border: selected
                           ? Border.all(
-                              color: Colors.white, width: 2)
+                              color: Colors.black, width: 2)
                           : null,
+                      boxShadow: selected
+                          ? [
+                              BoxShadow(
+                                color: c.withOpacity(0.5),
+                                blurRadius: 8,
+                              )
+                            ]
+                          : [],
                     ),
                   ),
                 );
@@ -279,8 +284,10 @@ class _CreateCategoryScreenState
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF799C0A),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius:
+                        BorderRadius.circular(20),
                   ),
+                  elevation: 0,
                 ),
                 onPressed: () {
                   if (nameController.text.isEmpty) return;

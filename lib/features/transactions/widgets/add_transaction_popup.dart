@@ -54,7 +54,7 @@ class _AddTransactionPopupState
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF1C1C1E),
+        color: Colors.white,
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(25)),
       ),
@@ -66,22 +66,27 @@ class _AddTransactionPopupState
             child: Column(
               children: [
 
+                /// HANDLE IOS
                 Container(
                   width: 40,
                   height: 5,
                   margin: const EdgeInsets.only(bottom: 15),
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: Colors.black12,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
 
+                /// TITLE
                 Text(
                   isIncome
                       ? "Nouveau revenu"
                       : "Nouvelle dépense",
                   style: const TextStyle(
-                      color: Colors.white, fontSize: 18),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -96,91 +101,104 @@ class _AddTransactionPopupState
 
                 const SizedBox(height: 20),
 
+                /// CATEGORIES
                 SizedBox(
-  height: 70,
-  child: ListView.separated(
-    scrollDirection: Axis.horizontal,
-    itemCount: categories.length + 1, // 🔥 +1 IMPORTANT
-    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  height: 70,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: categories.length + 1,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: 10),
+                    itemBuilder: (_, i) {
 
-    itemBuilder: (_, i) {
+                      /// ADD BUTTON
+                      if (i == categories.length) {
+                        return GestureDetector(
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CreateCategoryScreen(
+                                        isIncome: isIncome),
+                              ),
+                            );
+                            setState(() {});
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F0F0),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.add, color: Colors.black),
+                                SizedBox(width: 6),
+                                Text("Ajouter",
+                                    style: TextStyle(color: Colors.black)),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
 
-      /// 🔥 BOUTON AJOUT (dernier item)
-      if (i == categories.length) {
-        return GestureDetector(
-          onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    CreateCategoryScreen(isIncome: isIncome),
-              ),
-            );
-            setState(() {});
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C2C2E),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.add, color: Colors.white),
-                SizedBox(width: 6),
-                Text("Ajouter",
-                    style: TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
-        );
-      }
+                      /// CATEGORY
+                      final cat = categories[i];
+                      final selected = selectedCategory == cat.name;
 
-      /// 🔥 CATEGORIES
-      final cat = categories[i];
-      final selected = selectedCategory == cat.name;
-
-      return GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedCategory = cat.name;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: selected
-                ? cat.color
-                : const Color(0xFF2C2C2E),
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Row(
-            children: [
-              Icon(cat.icon, color: Colors.white, size: 18),
-              const SizedBox(width: 6),
-              Text(cat.name,
-                  style: const TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-      );
-    },
-  ),
-),
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedCategory = cat.name;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? cat.color
+                                : const Color(0xFFF0F0F0),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                cat.icon,
+                                color: selected ? Colors.white : Colors.black,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                cat.name,
+                                style: TextStyle(
+                                  color: selected
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
 
                 const SizedBox(height: 25),
 
+                /// BUTTON
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color(0xFF799C0A),
+                      backgroundColor: const Color(0xFF799C0A),
                       shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(20),
                       ),
+                      elevation: 0,
                     ),
                     onPressed: () async {
                       final raw = amountController.text
@@ -215,6 +233,7 @@ class _AddTransactionPopupState
     );
   }
 
+  /// ACCOUNTS
   Widget _accounts(accounts) {
     return SizedBox(
       height: 60,
@@ -237,17 +256,26 @@ class _AddTransactionPopupState
               decoration: BoxDecoration(
                 color: selected
                     ? Color(acc.color)
-                    : const Color(0xFF2C2C2E),
+                    : const Color(0xFFF0F0F0),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Row(
                 children: [
-                  Icon(acc.icon,
-                      color: Colors.white, size: 18),
+                  Icon(
+                    acc.icon,
+                    color:
+                        selected ? Colors.white : Colors.black,
+                    size: 18,
+                  ),
                   const SizedBox(width: 6),
-                  Text(acc.name,
-                      style: const TextStyle(
-                          color: Colors.white)),
+                  Text(
+                    acc.name,
+                    style: TextStyle(
+                      color: selected
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -257,18 +285,19 @@ class _AddTransactionPopupState
     );
   }
 
+  /// INPUT IOS STYLE
   Widget _input(String hint, TextEditingController c) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
         controller: c,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle:
-              const TextStyle(color: Colors.grey),
+              const TextStyle(color: Colors.black54),
           filled: true,
-          fillColor: const Color(0xFF2C2C2E),
+          fillColor: const Color(0xFFF5F5F7),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide.none,

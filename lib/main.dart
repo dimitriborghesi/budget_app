@@ -37,6 +37,10 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         scaffoldMessengerKey: messengerKey,
         debugShowCheckedModeBanner: false,
+          /// 👇 AJOUT ICI
+  theme: ThemeData(
+    fontFamily: 'Inter',
+  ),
         home: const AuthGate(), // ✅ seul point d’entrée
       ),
     );

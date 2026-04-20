@@ -6,15 +6,19 @@ import 'package:budget_app/core/utils/category_utils.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../../../core/providers/category_provider.dart';
+import '../../../main.dart';
 
 class TransactionCard extends StatefulWidget {
   final TransactionModel t;
   final bool isExpense;
+  final Color? backgroundColor;
 
   const TransactionCard({
     super.key,
     required this.t,
     required this.isExpense,
+    this.backgroundColor, // 👈 AJOUT
+
   });
 
   @override
@@ -109,25 +113,66 @@ if (offset > 90) {
     await provider.delete(t);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-  ..hideCurrentSnackBar()
+messengerKey.currentState
+  ?..hideCurrentSnackBar()
   ..showSnackBar(
     SnackBar(
-      content: const Text("Supprimé"),
-      duration: const Duration(seconds: 3),
       behavior: SnackBarBehavior.floating,
-      action: SnackBarAction(
-        label: "Annuler",
-        textColor: Colors.white,
-        onPressed: () async {
-          await provider.add(
-            title: deleted.title,
-            amount: deleted.amount,
-            account: deleted.account,
-            category: deleted.category,
-            isIncome: deleted.isIncome,
-          );
-        },
+
+      /// 🔥 ALIGNEMENT AVEC TA LISTE
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16, // 👈 EXACT comme ta liste
+        vertical: 10,
+      ),
+
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+
+      backgroundColor: Colors.black.withOpacity(0.85),
+
+      content: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              "Supprimé",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+
+          /// 🔥 TON BOUTON
+          GestureDetector(
+            onTap: () async {
+              await provider.add(
+                title: deleted.title,
+                amount: deleted.amount,
+                account: deleted.account,
+                category: deleted.category,
+                isIncome: deleted.isIncome,
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF9EA34E),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Text(
+                "Annuler",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     ),
   );
@@ -175,24 +220,31 @@ if (offset > 90) {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 gradient: (previewChecked ?? t.isChecked)
-                    ? const LinearGradient(
-                        colors: [
-                          Color(0xFF611313),
-                          Color(0xFF2B0D0D),
-                        ],
-                      )
-                    : const LinearGradient(
-                        colors: [
-                          Color(0xFF1B3C10),
-                          Color(0xFF3C460A),
-                        ],
-                      ),
+    ? const RadialGradient(
+        center: Alignment.center,
+        radius: 1.2,
+        colors: [
+              Color(0xFFCB5B5E),
+    Color(0xFFBB5258), // couleur intermédiaire auto
+    Color(0xFFAC4854)
+        ],
+        stops: [0.0, 0.5, 1.0],
+      )
+    : const RadialGradient(
+        center: Alignment.center,
+        radius: 1.2,
+        colors: [
+          Color(0xFF9EA34E), // centre
+          Color(0xFF9EA34E), // extérieur
+        ],
+        stops: [0.3, 1.0],
+      ),
               ),
               child: Icon(
                 (previewChecked ?? t.isChecked)
                     ? Icons.close
                     : Icons.check,
-                color: Colors.white,
+                color: Color(0xFFFAF7F8)
               ),
             ),
           ),
@@ -211,15 +263,17 @@ if (offset > 90) {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF611313),
-                    Color(0xFF2B0D0D),
-                  ],
+        colors: [
+              Color(0xFFCB5B5E),
+    Color(0xFFBB5258), // couleur intermédiaire auto
+    Color(0xFFAC4854)
+        ],
+        stops: [0.0, 0.5, 1.0],
                 ),
               ),
               child: const Icon(
                 Icons.delete,
-                color: Colors.white,
+                color: Color(0xFFFAF7F8)
               ),
             ),
           ),
@@ -232,114 +286,133 @@ if (offset > 90) {
      
 
     /// 🔥 CARD DEVANT
-    AnimatedContainer(
-      duration: const Duration(milliseconds: 60),
-      transform: Matrix4.translationValues(offset, 0, 0),
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151515),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-  children: [
-
-    /// 🔥 ICON CATÉGORIE
-    Container(
-  margin: const EdgeInsets.only(right: 12),
-  padding: const EdgeInsets.all(10),
+AnimatedContainer(
+  duration: const Duration(milliseconds: 60),
+  transform: Matrix4.translationValues(offset, 0, 0),
+  margin: const EdgeInsets.symmetric(vertical: 6),
+  padding: const EdgeInsets.all(16),
   decoration: BoxDecoration(
-    borderRadius: BorderRadius.circular(12),
-    color: (cat?.color ?? Colors.white).withOpacity(0.2),
+    color: widget.backgroundColor ?? Colors.white.withOpacity(0.75), // 🔥 plus lisible
+    borderRadius: BorderRadius.circular(18),
+    border: Border.all(
+      color: Colors.white.withOpacity(0.3),
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.12),
+        blurRadius: 16,
+        offset: const Offset(0, 6),
+      ),
+    ],
   ),
-  child: Icon(
-    cat?.icon ?? Icons.category,
-    color: cat?.color ?? Colors.white,
-    size: 18,
+  child: Row(
+    children: [
+
+      /// 🔥 ICON
+      Container(
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: (cat?.color ?? Colors.grey).withOpacity(0.15),
+        ),
+        child: Icon(
+          cat?.icon ?? Icons.category,
+          color: cat?.color ?? Colors.black,
+          size: 18,
+        ),
+      ),
+
+      /// 🔥 TEXTES
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// titre
+            Text(
+              t.title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            /// sous texte
+            Text(
+              "${t.category} • ${_formatDate(t.date)}",
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      /// 🔥 CHECK
+      Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          gradient: (previewChecked ?? t.isChecked)
+              ? const LinearGradient(
+                  colors: [
+                    Color(0xFF9EA34E),
+                    Color(0xFF9EA34E),
+                  ],
+                )
+              : const LinearGradient(
+                  colors: [
+                    Color(0xFFCB5B5E),
+                    Color(0xFFAC4854),
+                  ],
+                ),
+        ),
+        child: Icon(
+          (previewChecked ?? t.isChecked)
+              ? Icons.check
+              : Icons.close,
+          color: const Color(0xFFFAF7F8),
+          size: 14,
+        ),
+      ),
+
+      /// 🔥 MONTANT
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          gradient: t.isIncome
+              ? const LinearGradient(
+                  colors: [
+                    Color(0xFF9EA34E),
+                    Color(0xFF9EA34E),
+                  ],
+                )
+              : const LinearGradient(
+                  colors: [
+                    Color(0xFFCB5B5E),
+                    Color(0xFFAC4854),
+                  ],
+                ),
+        ),
+        child: Text(
+          "${t.isIncome ? "+" : "-"}${t.amount.toStringAsFixed(2)}€",
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ],
   ),
-),
-
-    /// 🔥 TEXTE
-    Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            t.title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "${t.category} • ${_formatDate(t.date)}",
-            style: const TextStyle(
-              color: Colors.white38,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    ),
-
-    /// 🔥 POINTAGE (✔ / ❌)
-    Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        gradient: (previewChecked ?? t.isChecked)
-            ? const LinearGradient(
-                colors: [
-                  Color(0xFF1B3C10),
-                  Color(0xFF3C460A),
-                ],
-              )
-            : const LinearGradient(
-                colors: [
-                  Color(0xFF611313),
-                  Color(0xFF2B0D0D),
-                ],
-              ),
-      ),
-      child: Icon(
-        (previewChecked ?? t.isChecked)
-            ? Icons.check
-            : Icons.close,
-        color: Colors.white,
-        size: 14,
-      ),
-    ),
-
-    /// 💰 MONTANT
-    Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        gradient: t.isIncome
-            ? const LinearGradient(
-                colors: [
-                  Color(0xFF1B3C10),
-                  Color(0xFF3C460A),
-                ],
-              )
-            : const LinearGradient(
-                colors: [
-                  Color(0xFF611313),
-                  Color(0xFF2B0D0D),
-                ],
-              ),
-      ),
-      child: Text(
-        "${t.isIncome ? "+" : "-"}${t.amount.toStringAsFixed(2)}€",
-        style: const TextStyle(color: Colors.white),
-      ),
-    ),
-  ],
-),
-    ),
+)
   ],
     ),
   );
