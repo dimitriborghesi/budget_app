@@ -20,6 +20,9 @@ class AddTransactionPopup extends StatefulWidget {
 
 class _AddTransactionPopupState
     extends State<AddTransactionPopup> {
+
+  DateTime selectedDate = DateTime.now();
+
   final titleController = TextEditingController();
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -32,6 +35,33 @@ class _AddTransactionPopupState
   void initState() {
     super.initState();
     isIncome = widget.isIncome;
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
+
+  String _formatDate(DateTime d) {
+    final now = DateTime.now();
+
+    if (d.day == now.day &&
+        d.month == now.month &&
+        d.year == now.year) {
+      return "Aujourd’hui";
+    }
+
+    return "${d.day}/${d.month}/${d.year}";
   }
 
   @override
@@ -66,7 +96,7 @@ class _AddTransactionPopupState
             child: Column(
               children: [
 
-                /// HANDLE IOS
+                /// HANDLE
                 Container(
                   width: 40,
                   height: 5,
@@ -85,7 +115,6 @@ class _AddTransactionPopupState
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
 
@@ -94,6 +123,10 @@ class _AddTransactionPopupState
                 _input("Titre", titleController),
                 _input("Montant", amountController),
                 _input("Description", descriptionController),
+
+                /// 🔥 DATE PICKER (ICI)
+                const SizedBox(height: 10),
+                _buildDatePicker(),
 
                 const SizedBox(height: 15),
 
@@ -111,7 +144,6 @@ class _AddTransactionPopupState
                         const SizedBox(width: 10),
                     itemBuilder: (_, i) {
 
-                      /// ADD BUTTON
                       if (i == categories.length) {
                         return GestureDetector(
                           onTap: () async {
@@ -133,17 +165,15 @@ class _AddTransactionPopupState
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.add, color: Colors.black),
+                                Icon(Icons.add),
                                 SizedBox(width: 6),
-                                Text("Ajouter",
-                                    style: TextStyle(color: Colors.black)),
+                                Text("Ajouter"),
                               ],
                             ),
                           ),
                         );
                       }
 
-                      /// CATEGORY
                       final cat = categories[i];
                       final selected = selectedCategory == cat.name;
 
@@ -166,7 +196,9 @@ class _AddTransactionPopupState
                             children: [
                               Icon(
                                 cat.icon,
-                                color: selected ? Colors.white : Colors.black,
+                                color: selected
+                                    ? Colors.white
+                                    : Colors.black,
                                 size: 18,
                               ),
                               const SizedBox(width: 6),
@@ -198,17 +230,23 @@ class _AddTransactionPopupState
                         borderRadius:
                             BorderRadius.circular(20),
                       ),
-                      elevation: 0,
                     ),
                     onPressed: () async {
-                      final raw = amountController.text
-                          .replaceAll(',', '.')
-                          .replaceAll(' ', '');
+final raw = amountController.text
+    .replaceAll(',', '.')
+    .replaceAll(RegExp(r'[^0-9.]'), '');
 
-                      final amount = double.tryParse(raw);
+final amount = double.tryParse(raw);
 
-                      if (amount == null ||
-                          titleController.text.isEmpty) return;
+if (amount == null) {
+  print("❌ montant invalide");
+  return;
+}
+
+if (titleController.text.isEmpty) {
+  print("❌ titre vide");
+  return;
+}
 
                       await provider.add(
                         title: titleController.text,
@@ -216,18 +254,49 @@ class _AddTransactionPopupState
                         account: selectedAccount,
                         category: selectedCategory,
                         isIncome: isIncome,
+                        date: selectedDate, // 🔥 OK
                       );
 
-                      if (context.mounted)
-                        Navigator.pop(context);
+if (!mounted) return;
+Navigator.pop(context);
                     },
-                    child: const Text("Ajouter",
-                        style: TextStyle(color: Colors.white)),
+                    child: const Text("Ajouter"),
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// DATE UI
+  Widget _buildDatePicker() {
+    return GestureDetector(
+      onTap: _pickDate,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F7),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_today, size: 16),
+            const SizedBox(width: 10),
+            Text(
+              _formatDate(selectedDate),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            const Icon(Icons.chevron_right, size: 18),
+          ],
         ),
       ),
     );
@@ -285,17 +354,14 @@ class _AddTransactionPopupState
     );
   }
 
-  /// INPUT IOS STYLE
+  /// INPUT
   Widget _input(String hint, TextEditingController c) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
         controller: c,
-        style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle:
-              const TextStyle(color: Colors.black54),
           filled: true,
           fillColor: const Color(0xFFF5F5F7),
           border: OutlineInputBorder(

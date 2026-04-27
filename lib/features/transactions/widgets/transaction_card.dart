@@ -7,13 +7,19 @@ import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../../../core/providers/category_provider.dart';
 import '../../../main.dart';
+import 'package:budget_app/core/theme/app_colors.dart';
+
 
 class TransactionCard extends StatefulWidget {
   final TransactionModel t;
   final bool isExpense;
   final Color? backgroundColor;
+  final bool isFirst;
+  final bool isLast;
 
   const TransactionCard({
+    this.isFirst = false,
+    this.isLast = false,
     super.key,
     required this.t,
     required this.isExpense,
@@ -35,6 +41,8 @@ class _TransactionCardState extends State<TransactionCard> {
 Widget build(BuildContext context) {
   final provider = context.read<TransactionProvider>();
   final t = widget.t;
+final theme = Theme.of(context);
+
 
 final cat = context
     .watch<CategoryProvider>()
@@ -134,15 +142,17 @@ messengerKey.currentState
         borderRadius: BorderRadius.circular(20),
       ),
 
-      backgroundColor: Colors.black.withOpacity(0.85),
+backgroundColor: theme.colorScheme.inverseSurface,
 
       content: Row(
         children: [
-          const Expanded(
+           Expanded(
             child: Text(
-              "Supprimé",
-              style: TextStyle(color: Colors.white),
-            ),
+  "Supprimé",
+  style: TextStyle(
+    color: theme.colorScheme.onInverseSurface,
+  ),
+),
           ),
 
           /// 🔥 TON BOUTON
@@ -154,6 +164,7 @@ messengerKey.currentState
                 account: deleted.account,
                 category: deleted.category,
                 isIncome: deleted.isIncome,
+                date: deleted.date,
               );
             },
             child: Container(
@@ -210,54 +221,71 @@ messengerKey.currentState
     children: [
 
       /// 👉 GAUCHE = CHECK
-      if (!isReleasing && offset > 20)
-        Padding(
-          padding: const EdgeInsets.only(left: 20),
-          child: Transform.translate(
-            offset: Offset(offset.clamp(0, 70) - 70, 0),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: (previewChecked ?? t.isChecked)
-    ? const RadialGradient(
-        center: Alignment.center,
-        radius: 1.2,
-        colors: [
-              Color(0xFFCB5B5E),
-    Color(0xFFBB5258), // couleur intermédiaire auto
-    Color(0xFFAC4854)
-        ],
-        stops: [0.0, 0.5, 1.0],
-      )
-    : const RadialGradient(
-        center: Alignment.center,
-        radius: 1.2,
-        colors: [
-          Color(0xFF9EA34E), // centre
-          Color(0xFF9EA34E), // extérieur
-        ],
-        stops: [0.3, 1.0],
+      if (!isReleasing && offset > 60)
+if (!isReleasing && offset > 20)
+  Padding(
+    padding: const EdgeInsets.only(left: 20),
+    child: Transform.translate(
+      offset: Offset(
+        -105 + offset.clamp(0, 100), // 👈 magie ici
+        0,
       ),
-              ),
-              child: Icon(
-                (previewChecked ?? t.isChecked)
-                    ? Icons.close
-                    : Icons.check,
-                color: Color(0xFFFAF7F8)
-              ),
-            ),
+      child: Opacity(
+        opacity: (offset / 110).clamp(0, 1), // 👈 fade progressif
+child: Container(
+  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(12),
+    gradient: (previewChecked ?? t.isChecked)
+        ? const RadialGradient(
+            center: Alignment.center,
+            radius: 1.2,
+            colors: [
+              Color(0xFFCB5B5E),
+              Color(0xFFBB5258),
+              Color(0xFFAC4854),
+            ],
+            stops: [0.0, 0.5, 1.0],
+          )
+        : const RadialGradient(
+            center: Alignment.center,
+            radius: 1.2,
+            colors: [
+              Color(0xFF9EA34E),
+              Color(0xFF9EA34E),
+            ],
+            stops: [0.3, 1.0],
           ),
-        )
+  ),
+  child: Text(
+    (previewChecked ?? t.isChecked)
+        ? "Non pointé"
+        : "Pointé",
+    style: const TextStyle(
+      color: Color(0xFFFAF7F8),
+      fontWeight: FontWeight.w600,
+      fontSize: 12,
+    ),
+  ),
+),
+          ),
+    ),
+  )
+        
       else
         const SizedBox(width: 60),
 
       /// 👉 DROITE = DELETE
-      if (!isReleasing && offset < -20)
-        Padding(
-          padding: const EdgeInsets.only(right: 20),
-          child: Transform.translate(
-            offset: Offset(offset.clamp(-70, 0) + 70, 0),
+if (!isReleasing && offset < -20)
+  Padding(
+    padding: const EdgeInsets.only(right: 20),
+    child: Transform.translate(
+offset: Offset(
+  380 + offset.clamp(-70, 0), // 👈 plus proche du bord
+  0,
+),
+      child: Opacity(
+        opacity: (-offset / 110).clamp(0, 1), // 👈 fade progressif
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -278,6 +306,7 @@ messengerKey.currentState
             ),
           ),
         )
+  )
       else
         const SizedBox(width: 60),
     ],
@@ -289,18 +318,28 @@ messengerKey.currentState
 AnimatedContainer(
   duration: const Duration(milliseconds: 60),
   transform: Matrix4.translationValues(offset, 0, 0),
-  margin: const EdgeInsets.symmetric(vertical: 6),
-  padding: const EdgeInsets.all(16),
+  margin: EdgeInsets.zero,
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
   decoration: BoxDecoration(
-    color: widget.backgroundColor ?? Colors.white.withOpacity(0.75), // 🔥 plus lisible
-    borderRadius: BorderRadius.circular(18),
-    border: Border.all(
-      color: Colors.white.withOpacity(0.3),
-    ),
+color: widget.backgroundColor ?? theme.cardColor.withOpacity(0.9),
+borderRadius: BorderRadius.only(
+  topLeft: Radius.circular(widget.isFirst ? 16 : 0),
+  topRight: Radius.circular(widget.isFirst ? 16 : 0),
+  bottomLeft: Radius.circular(widget.isLast ? 16 : 0),
+  bottomRight: Radius.circular(widget.isLast ? 16 : 0),
+),
+border: widget.isLast
+    ? null
+    : Border(
+        bottom: BorderSide(
+          color: theme.dividerColor.withOpacity(0.3),
+          width: 0.5,
+        ),
+      ),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.12),
-        blurRadius: 16,
+    color: theme.shadowColor.withOpacity(0.0),
+        blurRadius: 0,
         offset: const Offset(0, 6),
       ),
     ],
@@ -309,19 +348,19 @@ AnimatedContainer(
     children: [
 
       /// 🔥 ICON
-      Container(
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: (cat?.color ?? Colors.grey).withOpacity(0.15),
-        ),
-        child: Icon(
-          cat?.icon ?? Icons.category,
-          color: cat?.color ?? Colors.black,
-          size: 18,
-        ),
-      ),
+Container(
+  margin: const EdgeInsets.only(right: 12),
+  padding: const EdgeInsets.all(10),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(12),
+    color: cat?.color ?? theme.primaryColor, // 🎨 fond = couleur catégorie
+  ),
+  child: Icon(
+    cat?.icon ?? Icons.category,
+    color: Colors.white, // ⚪ icône blanche
+    size: 18,
+  ),
+),
 
       /// 🔥 TEXTES
       Expanded(
@@ -330,86 +369,85 @@ AnimatedContainer(
           children: [
 
             /// titre
-            Text(
-              t.title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
+Row(
+  mainAxisSize: MainAxisSize.min, // 🔥 IMPORTANT
+  children: [
+    Flexible( // 👈 au lieu de Expanded
+      child: Text(
+        t.title,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: theme.textTheme.bodyMedium?.color,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+
+    const SizedBox(width: 4),
+
+    Icon(
+      (previewChecked ?? t.isChecked)
+          ? Icons.check_rounded
+
+          : Icons.close_rounded,
+      size: 15,
+      color: (previewChecked ?? t.isChecked)
+          ? AppColors.success
+          : AppColors.danger,
+    ),
+  ],
+),
 
             const SizedBox(height: 4),
 
             /// sous texte
-            Text(
-              "${t.category} • ${_formatDate(t.date)}",
-              style: const TextStyle(
-                fontSize: 13,
-                color: Colors.black54,
-              ),
-            ),
+Text(
+  _formatDate(t.date),
+  style: TextStyle(
+    fontSize: 10,
+    color: theme.textTheme.bodySmall?.color,
+  ),
+),
           ],
         ),
       ),
 
-      /// 🔥 CHECK
-      Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          gradient: (previewChecked ?? t.isChecked)
-              ? const LinearGradient(
-                  colors: [
-                    Color(0xFF9EA34E),
-                    Color(0xFF9EA34E),
-                  ],
-                )
-              : const LinearGradient(
-                  colors: [
-                    Color(0xFFCB5B5E),
-                    Color(0xFFAC4854),
-                  ],
-                ),
-        ),
-        child: Icon(
-          (previewChecked ?? t.isChecked)
-              ? Icons.check
-              : Icons.close,
-          color: const Color(0xFFFAF7F8),
-          size: 14,
-        ),
-      ),
-
       /// 🔥 MONTANT
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          gradient: t.isIncome
-              ? const LinearGradient(
-                  colors: [
-                    Color(0xFF9EA34E),
-                    Color(0xFF9EA34E),
-                  ],
-                )
-              : const LinearGradient(
-                  colors: [
-                    Color(0xFFCB5B5E),
-                    Color(0xFFAC4854),
-                  ],
-                ),
-        ),
-        child: Text(
-          "${t.isIncome ? "+" : "-"}${t.amount.toStringAsFixed(2)}€",
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
+Column(
+  crossAxisAlignment: CrossAxisAlignment.end,
+  children: [
+
+    /// 💰 MONTANT
+    Text(
+      "${t.isIncome ? "+" : "-"}${t.amount.toStringAsFixed(2)}€",
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: theme.textTheme.bodyMedium?.color,
       ),
+    ),
+
+    const SizedBox(height: 2),
+
+    /// 🏷️ CATÉGORIE (même couleur que l’icône)
+    Text(
+      t.category ?? "",
+      style: TextStyle(
+        fontSize: 10,
+        color: cat?.color ?? theme.primaryColor,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  ],
+),
+const SizedBox(width: 8),
+
+Icon(
+  Icons.chevron_right,
+  size: 20,
+color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+),
     ],
   ),
 )
@@ -419,5 +457,23 @@ AnimatedContainer(
 }
 }
 String _formatDate(DateTime date) {
-  return "${date.day}/${date.month} • ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+  const months = [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre"
+  ];
+
+  final hour = date.hour.toString().padLeft(2, '0');
+  final minute = date.minute.toString().padLeft(2, '0');
+
+  return "${date.day} ${months[date.month - 1]} à $hour:$minute";
 }

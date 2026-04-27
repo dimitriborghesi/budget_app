@@ -44,6 +44,8 @@ class TransactionProvider with ChangeNotifier {
   required String account,
   required String category,
   required bool isIncome,
+  required DateTime date,
+
 }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -55,7 +57,7 @@ class TransactionProvider with ChangeNotifier {
         "account": account,
         "category": category,
         "isIncome": isIncome,
-        "date": DateTime.now(),
+        "date": date,
         "userId": user.uid,
       });
 

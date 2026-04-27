@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:provider/provider.dart';
+import '../../../core/providers/theme_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -92,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF151515), // ✅ même que dépenses
+color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(children: children),
@@ -103,26 +105,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _item(IconData icon, String title,
       {Widget? trailing, VoidCallback? onTap}) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
+      leading: Icon(icon, color: Theme.of(context).iconTheme.color),
       title: Text(
         title,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color),
       ),
       trailing: trailing ??
-          const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-      onTap: onTap,
+Icon(
+  Icons.arrow_forward_ios,
+  color: Theme.of(context).iconTheme.color,
+  size: 16,
+),      onTap: onTap,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF060B05),
+backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("Profil", 
-            style: TextStyle(color: Colors.white)),
+        title: Text(
+  "Profil",
+  style: TextStyle(
+    color: Theme.of(context).textTheme.bodyMedium!.color,
+  ),
+),
       ),
 
       body: SafeArea(
@@ -140,12 +149,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const CircleAvatar(
                       radius: 35,
                       backgroundColor: Color(0xFF799C0A),
-                      child: Icon(Icons.person, size: 35, color: Colors.white),
+                      child: Icon(
+  Icons.person,
+  size: 35,
+  color: Colors.white, // 👈 OK ici (cas spécial)
+),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       user?.email ?? "",
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color),
                     ),
                   ],
                 ),
@@ -155,6 +168,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // ⚙️ SETTINGS
                 _card(
                   children: [
+                    _item(
+  Icons.dark_mode,
+  "Mode sombre",
+  trailing: Switch(
+    value: context.watch<ThemeProvider>().isDark,
+    activeColor: const Color(0xFF799C0A),
+    onChanged: (value) {
+      context.read<ThemeProvider>().toggleTheme(value);
+    },
+  ),
+),
                     _item(
                       Icons.lock,
                       "Biométrie",

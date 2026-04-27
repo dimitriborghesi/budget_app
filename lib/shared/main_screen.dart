@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:intl/date_symbol_data_local.dart';
 import '../features/transactions/providers/transaction_provider.dart';
 import '../features/accounts/providers/account_provider.dart';
 import '../features/recurring/providers/recurring_provider.dart';
@@ -12,6 +12,15 @@ import 'screens/stats_screen.dart';
 import '../features/accounts/screens/accounts_screen.dart';
 import 'screens/profile_screen.dart';
 import '../features/recurring/screens/recurring_screen.dart'; // 🔥 NEW
+
+
+    void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting('fr', null);
+
+  runApp(const MyApp());
+}
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -79,7 +88,7 @@ class _MainScreenState extends State<MainScreen> {
       /// 💎 NAVBAR PREMIUM
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: Colors.black,
+          color: Color.fromARGB(255, 221, 221, 221),
           border: Border(
             top: BorderSide(color: Colors.white12),
           ),
@@ -91,9 +100,9 @@ class _MainScreenState extends State<MainScreen> {
 
   setState(() => index = i);
 },
-          backgroundColor: const Color(0xFF060B05),
+          backgroundColor: const Color(0xFFF7F7F7),
           selectedItemColor: const Color(0xFF799C0A),
-          unselectedItemColor: Colors.white,
+          unselectedItemColor: Colors.black54,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
           
@@ -129,3 +138,4 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
